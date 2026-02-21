@@ -209,6 +209,12 @@ async def get_all_filters():
     filters = await db.filters.find({}, {"_id": 0}).to_list(1000)
     return [deserialize_from_mongo(f) for f in filters]
 
+@api_router.get("/filters/low-stock", response_model=List[Filter])
+async def get_low_stock_filters():
+    filters = await db.filters.find({}, {"_id": 0}).to_list(1000)
+    low_stock = [f for f in filters if f.get('quantity_in_stock', 0) <= f.get('reorder_level', 5)]
+    return [deserialize_from_mongo(f) for f in low_stock]
+
 @api_router.get("/filters/{filter_id}", response_model=Filter)
 async def get_filter(filter_id: str):
     filter_obj = await db.filters.find_one({"id": filter_id}, {"_id": 0})
