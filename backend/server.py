@@ -243,12 +243,6 @@ async def delete_filter(filter_id: str):
         raise HTTPException(status_code=404, detail="Filter not found")
     return {"message": "Filter deleted successfully"}
 
-@api_router.get("/filters/low-stock", response_model=List[Filter])
-async def get_low_stock_filters():
-    filters = await db.filters.find({}, {"_id": 0}).to_list(1000)
-    low_stock = [f for f in filters if f.get('quantity_in_stock', 0) <= f.get('reorder_level', 5)]
-    return [deserialize_from_mongo(f) for f in low_stock]
-
 # ==================== SERVICE RECORD ENDPOINTS ====================
 
 @api_router.post("/services", response_model=ServiceRecord)
