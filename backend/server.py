@@ -146,7 +146,7 @@ def deserialize_from_mongo(data: dict) -> dict:
         if key in data and isinstance(data[key], str):
             try:
                 data[key] = datetime.fromisoformat(data[key])
-            except:
+            except (ValueError, TypeError):
                 pass
     return data
 
@@ -442,7 +442,7 @@ async def get_dashboard_alerts():
                         "equipment_name": equipment.get('name', 'Unknown'),
                         "due_date": service.get('next_service_date')
                     })
-            except:
+            except (ValueError, TypeError, KeyError):
                 pass
     
     # Low stock filters
