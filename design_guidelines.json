@@ -1,0 +1,127 @@
+{
+  "project_identity": {
+    "name": "FarmTrack Pro",
+    "persona": "The Industrial Pragmatist",
+    "core_philosophy": "Dirt-proof Design. High contrast, large touch targets, zero fluff. Built for sunlight and grease.",
+    "emotional_tone": "Robust, Reliable, Mechanical, Direct"
+  },
+  "typography": {
+    "font_family": {
+      "headings": "Barlow Condensed, sans-serif",
+      "body": "Inter, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-4xl md:text-5xl font-bold tracking-tight uppercase",
+      "h2": "text-3xl md:text-4xl font-semibold tracking-tight uppercase",
+      "h3": "text-2xl font-semibold tracking-normal",
+      "body": "text-base md:text-lg leading-relaxed",
+      "label": "text-sm font-bold tracking-widest uppercase text-muted-foreground",
+      "data": "text-xl font-mono font-medium"
+    },
+    "google_fonts_import": "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+  },
+  "colors": {
+    "palette_name": "Heavy Machinery",
+    "mode": "light",
+    "primary": {
+      "hex": "#1a1f2c",
+      "tailwind": "bg-slate-900",
+      "usage": "Headers, Primary Navigation, Strong Borders"
+    },
+    "secondary": {
+      "hex": "#f97316",
+      "tailwind": "bg-orange-500",
+      "usage": "Action Buttons, Active States, Critical Alerts (High Visibility)"
+    },
+    "accent": {
+      "hex": "#eab308",
+      "tailwind": "bg-yellow-500",
+      "usage": "Warnings, Highlights, Status Indicators"
+    },
+    "background": {
+      "default": "#f8fafc",
+      "card": "#ffffff",
+      "subtle": "#f1f5f9"
+    },
+    "text": {
+      "primary": "#0f172a",
+      "secondary": "#64748b",
+      "inverse": "#ffffff"
+    },
+    "status": {
+      "success": "#16a34a",
+      "error": "#dc2626",
+      "warning": "#d97706",
+      "info": "#2563eb"
+    }
+  },
+  "layout_strategy": {
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "grid_system": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
+    "dashboard_grid": "grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[minmax(180px,auto)]",
+    "spacing": {
+      "section_gap": "py-12 md:py-16",
+      "card_padding": "p-6",
+      "element_gap": "space-y-6"
+    }
+  },
+  "components": {
+    "buttons": {
+      "style": "rounded-none font-bold uppercase tracking-wider h-12",
+      "primary": "bg-slate-900 text-white hover:bg-slate-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all",
+      "secondary": "bg-white border-2 border-slate-900 text-slate-900 hover:bg-slate-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all",
+      "destructive": "bg-red-600 text-white hover:bg-red-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+    },
+    "cards": {
+      "style": "bg-white border-2 border-slate-200 rounded-lg overflow-hidden relative",
+      "hover": "hover:border-slate-900 transition-colors duration-200"
+    },
+    "inputs": {
+      "style": "h-12 border-2 border-slate-300 rounded-md focus:border-slate-900 focus:ring-0 bg-slate-50 font-medium text-lg"
+    },
+    "badges": {
+      "style": "rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider border"
+    }
+  },
+  "motion": {
+    "default_transition": "transition-all duration-200 ease-out",
+    "hover_lift": "hover:-translate-y-1 hover:shadow-md",
+    "active_press": "active:scale-[0.98]"
+  },
+  "assets": {
+    "icons": "lucide-react",
+    "images": {
+      "tractors": [
+        "https://images.pexels.com/photos/2933243/pexels-photo-2933243.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "https://images.unsplash.com/photo-1758608951432-773ae6a33f56?crop=entropy&cs=srgb&fm=jpg&q=85"
+      ],
+      "vehicles": [
+        "https://images.unsplash.com/photo-1628211889896-ab18c32b28cc?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "https://images.unsplash.com/photo-1605482605771-ab447e5dd04b?crop=entropy&cs=srgb&fm=jpg&q=85"
+      ],
+      "placeholders": {
+        "equipment": "https://placehold.co/600x400/1f2937/ffffff?text=Equipment+Image",
+        "filter": "https://placehold.co/400x400/e2e8f0/1f2937?text=Filter"
+      }
+    }
+  },
+  "accessibility": {
+    "contrast_check": "Ensure all text on colored backgrounds meets WCAG AA 4.5:1. Use black text on orange/yellow buttons.",
+    "touch_targets": "Minimum 44px for all interactive elements. Add p-4 to small icons.",
+    "labels": "All inputs must have visible labels or aria-labels."
+  },
+  "instructions_to_main_agent": {
+    "general": "Build a robust, field-ready dashboard. Do not use gradients or delicate shadows. Use thick borders, high contrast, and large typography. Think 'Caterpillar' or 'John Deere' interface, not 'SaaS startup'.",
+    "mobile_first": "Prioritize mobile view. Stack columns on mobile. Use bottom sheet drawers for filters/actions instead of complex modals.",
+    "data_display": "Use tabular data for logs but format it for mobile (card view rows). Highlights: 'Next Service Date' and 'Overdue' status must be screamingly obvious."
+  },
+  "universal_guidelines": [
+    "Do not use generic centered layouts.",
+    "Avoid 'AI slop' aesthetics (soft gradients, floating rounded cards). Go for 'Industrial Brutalism'.",
+    "Use 'sonner' for toasts.",
+    "Interactive elements must have data-testid attributes.",
+    "Use Tailwind spacing scale: p-4, p-6, p-8 (generous spacing).",
+    "Never use transparent backgrounds on overlays/dropdowns."
+  ]
+}
