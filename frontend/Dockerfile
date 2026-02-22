@@ -1,30 +1,14 @@
 FROM node:20-alpine as build
-
 WORKDIR /app
-
-# Install dependencies
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
-
-# Copy source code
+RUN yarn install --frozen-lockfile --ignore-engines
 COPY . .
-
-# Build argument for backend URL
 ARG REACT_APP_BACKEND_URL
 ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
-
-# Build the app
 RUN yarn build
 
-# Production stage
 FROM nginx:alpine
-
-# Copy built files
 COPY --from=build /app/build /usr/share/nginx/html
-
-# Copy nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
