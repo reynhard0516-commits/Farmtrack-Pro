@@ -513,9 +513,19 @@ async def get_dashboard_alerts(
     return alerts[:limit]
 
 @api_router.get("/dashboard/recent-services")
-async def get_recent_services():
-    services = await db.service_records.find({}, {"_id": 0}).sort("service_date", -1).to_list(10)
-    equipment_list = await db.equipment.find({}, {"_id": 0}).to_list(1000)
+async def get_recent_services(
+    limit: int = Query(10, ge=1, le=50, description="Max recent services to return")
+):
+    services = await db.service_records.find({}, {"_id": 0}).sort("service_date", -1).limit(limit).to_list(limit)
+    
+    # Get only the equipment we need
+    equipment_ids = list(set([s.get('equipment_id') for s in services if s.get('equipment_id')]))
+    equipment_list = []
+    if equipment_ids:
+        equipment_list = await db.equipment.find(
+            {"id": {"$in": equipment_ids}},
+            {"_id": 0}
+        ).to_list(len(equipment_ids))
     equipment_map = {e['id']: e for e in equipment_list}
     
     result = []
