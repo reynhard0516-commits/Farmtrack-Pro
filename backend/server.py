@@ -208,15 +208,23 @@ async def create_filter(input: FilterCreate):
     return filter_obj
 
 @api_router.get("/filters", response_model=List[Filter])
-async def get_all_filters():
-    filters = await db.filters.find({}, {"_id": 0}).to_list(1000)
+async def get_all_filters(
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=500, description="Max records to return")
+):
+    filters = await db.filters.find({}, {"_id": 0}).skip(skip).limit(limit).to_list(limit)
     return [deserialize_from_mongo(f) for f in filters]
 
 @api_router.get("/filters/low-stock", response_model=List[Filter])
-async def get_low_stock_filters():
-    filters = await db.filters.find({}, {"_id": 0}).to_list(1000)
-    low_stock = [f for f in filters if f.get('quantity_in_stock', 0) <= f.get('reorder_level', 5)]
-    return [deserialize_from_mongo(f) for f in low_stock]
+async def get_low_stock_filters(
+    limit: int = Query(50, ge=1, le=200, description="Max records to return")
+):
+    # Use MongoDB $expr to filter at database level
+    low_stock_filters = await db.filters.find(
+        {"$expr": {"$lte": ["$quantity_in_stock", "$reorder_level"]}},
+        {"_id": 0}
+    ).limit(limit).to_list(limit)
+    return [deserialize_from_mongo(f) for f in low_stock_filters]
 
 @api_router.get("/filters/{filter_id}", response_model=Filter)
 async def get_filter(filter_id: str):
