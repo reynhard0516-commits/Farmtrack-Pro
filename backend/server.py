@@ -397,7 +397,7 @@ async def delete_reminder(reminder_id: str):
 async def get_dashboard_stats():
     now = datetime.now(timezone.utc)
     
-    # Equipment counts
+    # Equipment counts - using count_documents is efficient
     total_equipment = await db.equipment.count_documents({})
     tractors = await db.equipment.count_documents({"equipment_type": "tractor"})
     vehicles = await db.equipment.count_documents({"equipment_type": "vehicle"})
@@ -405,20 +405,21 @@ async def get_dashboard_stats():
     # Service counts
     total_services = await db.service_records.count_documents({})
     
-    # Get upcoming services (next 30 days)
+    # Count upcoming services (next 30 days) - only count, don't fetch all
     upcoming_threshold = (now + timedelta(days=30)).isoformat()
-    upcoming_services = await db.service_records.find({
+    upcoming_services_count = await db.service_records.count_documents({
         "next_service_date": {"$lte": upcoming_threshold, "$gte": now.isoformat()}
-    }, {"_id": 0}).to_list(100)
+    })
     
-    # Get overdue services
-    overdue_services = await db.service_records.find({
-        "next_service_date": {"$lt": now.isoformat()}
-    }, {"_id": 0}).to_list(100)
+    # Count overdue services
+    overdue_services_count = await db.service_records.count_documents({
+        "next_service_date": {"$lt": now.isoformat(), "$ne": None}
+    })
     
-    # Low stock filters
-    filters = await db.filters.find({}, {"_id": 0}).to_list(1000)
-    low_stock_count = len([f for f in filters if f.get('quantity_in_stock', 0) <= f.get('reorder_level', 5)])
+    # Low stock filters count - use efficient $expr query
+    low_stock_count = await db.filters.count_documents({
+        "$expr": {"$lte": ["$quantity_in_stock", "$reorder_level"]}
+    })
     
     # Active reminders
     active_reminders = await db.reminders.count_documents({"is_active": True})
@@ -428,8 +429,8 @@ async def get_dashboard_stats():
         "tractors": tractors,
         "vehicles": vehicles,
         "total_services": total_services,
-        "upcoming_services_count": len(upcoming_services),
-        "overdue_services_count": len(overdue_services),
+        "upcoming_services_count": upcoming_services_count,
+        "overdue_services_count": overdue_services_count,
         "low_stock_filters": low_stock_count,
         "active_reminders": active_reminders
     }
