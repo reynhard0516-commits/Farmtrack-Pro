@@ -286,13 +286,20 @@ async def create_service_record(input: ServiceRecordCreate):
     return service
 
 @api_router.get("/services", response_model=List[ServiceRecord])
-async def get_all_services():
-    services = await db.service_records.find({}, {"_id": 0}).to_list(1000)
+async def get_all_services(
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=500, description="Max records to return")
+):
+    services = await db.service_records.find({}, {"_id": 0}).sort("service_date", -1).skip(skip).limit(limit).to_list(limit)
     return [deserialize_from_mongo(s) for s in services]
 
 @api_router.get("/services/equipment/{equipment_id}", response_model=List[ServiceRecord])
-async def get_equipment_services(equipment_id: str):
-    services = await db.service_records.find({"equipment_id": equipment_id}, {"_id": 0}).to_list(1000)
+async def get_equipment_services(
+    equipment_id: str,
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=500, description="Max records to return")
+):
+    services = await db.service_records.find({"equipment_id": equipment_id}, {"_id": 0}).sort("service_date", -1).skip(skip).limit(limit).to_list(limit)
     return [deserialize_from_mongo(s) for s in services]
 
 @api_router.get("/services/{service_id}", response_model=ServiceRecord)
