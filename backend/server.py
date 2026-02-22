@@ -436,58 +436,81 @@ async def get_dashboard_stats():
     }
 
 @api_router.get("/dashboard/alerts")
-async def get_dashboard_alerts():
+async def get_dashboard_alerts(
+    limit: int = Query(20, ge=1, le=100, description="Max alerts to return")
+):
     now = datetime.now(timezone.utc)
+    upcoming_threshold = (now + timedelta(days=7)).isoformat()
     alerts = []
     
-    # Overdue services
-    all_services = await db.service_records.find({}, {"_id": 0}).to_list(1000)
-    equipment_list = await db.equipment.find({}, {"_id": 0}).to_list(1000)
+    # Get only relevant services (overdue or upcoming within 7 days) - not ALL services
+    overdue_services = await db.service_records.find(
+        {"next_service_date": {"$lt": now.isoformat(), "$ne": None}},
+        {"_id": 0}
+    ).limit(50).to_list(50)
+    
+    upcoming_services = await db.service_records.find(
+        {"next_service_date": {"$lte": upcoming_threshold, "$gte": now.isoformat()}},
+        {"_id": 0}
+    ).limit(50).to_list(50)
+    
+    # Get equipment for these services only
+    service_equipment_ids = list(set(
+        [s.get('equipment_id') for s in overdue_services + upcoming_services if s.get('equipment_id')]
+    ))
+    
+    equipment_list = []
+    if service_equipment_ids:
+        equipment_list = await db.equipment.find(
+            {"id": {"$in": service_equipment_ids}},
+            {"_id": 0}
+        ).to_list(len(service_equipment_ids))
     equipment_map = {e['id']: e for e in equipment_list}
     
-    for service in all_services:
-        if service.get('next_service_date'):
-            try:
-                next_date = datetime.fromisoformat(service['next_service_date']) if isinstance(service['next_service_date'], str) else service['next_service_date']
-                equipment = equipment_map.get(service.get('equipment_id'), {})
-                if next_date < now:
-                    alerts.append({
-                        "type": "overdue",
-                        "severity": "high",
-                        "message": f"Overdue: {service.get('service_type')} for {equipment.get('name', 'Unknown')}",
-                        "equipment_id": service.get('equipment_id'),
-                        "equipment_name": equipment.get('name', 'Unknown'),
-                        "due_date": service.get('next_service_date')
-                    })
-                elif next_date <= now + timedelta(days=7):
-                    alerts.append({
-                        "type": "upcoming",
-                        "severity": "medium",
-                        "message": f"Due soon: {service.get('service_type')} for {equipment.get('name', 'Unknown')}",
-                        "equipment_id": service.get('equipment_id'),
-                        "equipment_name": equipment.get('name', 'Unknown'),
-                        "due_date": service.get('next_service_date')
-                    })
-            except (ValueError, TypeError, KeyError):
-                pass
+    # Process overdue services
+    for service in overdue_services:
+        equipment = equipment_map.get(service.get('equipment_id'), {})
+        alerts.append({
+            "type": "overdue",
+            "severity": "high",
+            "message": f"Overdue: {service.get('service_type')} for {equipment.get('name', 'Unknown')}",
+            "equipment_id": service.get('equipment_id'),
+            "equipment_name": equipment.get('name', 'Unknown'),
+            "due_date": service.get('next_service_date')
+        })
     
-    # Low stock filters
-    filters = await db.filters.find({}, {"_id": 0}).to_list(1000)
-    for f in filters:
-        if f.get('quantity_in_stock', 0) <= f.get('reorder_level', 5):
-            alerts.append({
-                "type": "low_stock",
-                "severity": "medium",
-                "message": f"Low stock: {f.get('name')} ({f.get('quantity_in_stock')} remaining)",
-                "filter_id": f.get('id'),
-                "filter_name": f.get('name')
-            })
+    # Process upcoming services
+    for service in upcoming_services:
+        equipment = equipment_map.get(service.get('equipment_id'), {})
+        alerts.append({
+            "type": "upcoming",
+            "severity": "medium",
+            "message": f"Due soon: {service.get('service_type')} for {equipment.get('name', 'Unknown')}",
+            "equipment_id": service.get('equipment_id'),
+            "equipment_name": equipment.get('name', 'Unknown'),
+            "due_date": service.get('next_service_date')
+        })
+    
+    # Low stock filters - use efficient query
+    low_stock_filters = await db.filters.find(
+        {"$expr": {"$lte": ["$quantity_in_stock", "$reorder_level"]}},
+        {"_id": 0}
+    ).limit(20).to_list(20)
+    
+    for f in low_stock_filters:
+        alerts.append({
+            "type": "low_stock",
+            "severity": "medium",
+            "message": f"Low stock: {f.get('name')} ({f.get('quantity_in_stock')} remaining)",
+            "filter_id": f.get('id'),
+            "filter_name": f.get('name')
+        })
     
     # Sort by severity
     severity_order = {"high": 0, "medium": 1, "low": 2}
     alerts.sort(key=lambda x: severity_order.get(x.get('severity'), 99))
     
-    return alerts
+    return alerts[:limit]
 
 @api_router.get("/dashboard/recent-services")
 async def get_recent_services():
