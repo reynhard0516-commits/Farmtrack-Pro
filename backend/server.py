@@ -160,8 +160,11 @@ async def create_equipment(input: EquipmentCreate):
     return equipment
 
 @api_router.get("/equipment", response_model=List[Equipment])
-async def get_all_equipment():
-    equipment_list = await db.equipment.find({}, {"_id": 0}).to_list(1000)
+async def get_all_equipment(
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=500, description="Max records to return")
+):
+    equipment_list = await db.equipment.find({}, {"_id": 0}).skip(skip).limit(limit).to_list(limit)
     return [deserialize_from_mongo(e) for e in equipment_list]
 
 @api_router.get("/equipment/{equipment_id}", response_model=Equipment)
