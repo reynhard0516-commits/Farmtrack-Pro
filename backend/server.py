@@ -346,13 +346,20 @@ async def create_reminder(input: ReminderCreate):
     return reminder
 
 @api_router.get("/reminders", response_model=List[Reminder])
-async def get_all_reminders():
-    reminders = await db.reminders.find({}, {"_id": 0}).to_list(1000)
+async def get_all_reminders(
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=500, description="Max records to return")
+):
+    reminders = await db.reminders.find({}, {"_id": 0}).skip(skip).limit(limit).to_list(limit)
     return [deserialize_from_mongo(r) for r in reminders]
 
 @api_router.get("/reminders/equipment/{equipment_id}", response_model=List[Reminder])
-async def get_equipment_reminders(equipment_id: str):
-    reminders = await db.reminders.find({"equipment_id": equipment_id}, {"_id": 0}).to_list(1000)
+async def get_equipment_reminders(
+    equipment_id: str,
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=500, description="Max records to return")
+):
+    reminders = await db.reminders.find({"equipment_id": equipment_id}, {"_id": 0}).skip(skip).limit(limit).to_list(limit)
     return [deserialize_from_mongo(r) for r in reminders]
 
 @api_router.get("/reminders/{reminder_id}", response_model=Reminder)
