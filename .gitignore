@@ -34,3 +34,7 @@ coverage/
 # Misc
 *.swp
 *.swo
+-e 
+# Environment files
+*.env
+*.env.*
